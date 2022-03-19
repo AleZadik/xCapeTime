@@ -1,19 +1,10 @@
-from django.shortcuts import render
+from cryptography.fernet import Fernet
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from xrpl.clients import JsonRpcClient
 from xrpl.wallet import generate_faucet_wallet
 import os
-
-# JSON_RPC_URL = "https://s.altnet.rippletest.net:51234/"
-# client = JsonRpcClient(JSON_RPC_URL)
-
-
-
-# test_wallet_one = generate_faucet_wallet(client, debug=True)
-# test_wallet_two = generate_faucet_wallet(client, debug=True)
-# print(test_wallet_one)
-# print("=============================================")
-# print(test_wallet_two)
+from dotenv import load_dotenv
+load_dotenv()
 
 # Development Testnet Credentials for xrpl
 account_one = {
@@ -32,7 +23,7 @@ account_two = {
 app = Flask(__name__)
 
 def file_encrypt(file_str):
-    secret_key = os.environ.get('SECRET_KEY', None)
+    secret_key = os.environ.get('FILE_SECRET_KEY', None)
     if not secret_key:
         return file_str
     else: #@TODO: Encrypt file
@@ -45,16 +36,33 @@ def nft_storage_upload(file_str):
     else: #@TODO: Upload file to NFT Storage
         return "ipfs://hash"
 
+def xcape_decode(xcape_token):
+    xcape_key = os.environ.get('XCAPE_KEY', None)
+    if not xcape_key:
+        raise Exception("XCAPE_KEY is not set")
+    else:
+        dec_fun = Fernet(str.encode(xcape_key))
+        xcape_cid = dec_fun.decrypt(str.encode(xcape_token))
+        return xcape_cid.decode("utf-8")
+
 def xcape_encode(ipfs_url):
-    return ipfs_url #@TODO: encode ipfs url to xcape url
+    ipfs_cid = ipfs_url.split("/")[-1] # [ipfs:/, /, hash]
+    xcape_key = os.environ.get('XCAPE_KEY', None)
+    if not xcape_key:
+        raise Exception("XCAPE_KEY is not set")
+    else:
+        enc_fun = Fernet(str.encode(xcape_key))
+        xcape_token = enc_fun.encrypt(str.encode(ipfs_cid))
+        return xcape_token.decode("utf-8")
 
 @app.route('/')
 def root():
+    encoded = xcape_encode("ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf4dfuylqabf3oclgtqy55fbzdi")
+    decoded = xcape_decode(encoded)
+    print(encoded)
+    print("==========================================================")
+    print(decoded)
     return render_template('index.html')
-    
-@app.route('/mint')
-def mint_page():
-    return render_template('mint.html')
 
 # Create /encrypt route that receives a file through POST
 @app.route('/encrypt', methods=['POST'])
