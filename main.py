@@ -66,6 +66,14 @@ def xcape_encode(ipfs_url):
         xcape_token = enc_fun.encrypt(str.encode(ipfs_cid))
         return xcape_token.decode("utf-8")
 
+# Created route that 'decrypts' the url
+@app.route('/unlock/<xcape_link>')
+def nft_page(xcape_link):
+    xcape_cid = xcape_decode(xcape_link)
+    print(xcape_cid)
+    # Returns the ipfs link
+    return render_template('nft.html', xcape_cid="ipfs://{}".format(xcape_cid))
+
 @app.route('/')
 def root():
     encoded = xcape_encode("ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf4dfuylqabf3oclgtqy55fbzdi")
@@ -88,11 +96,6 @@ def encrypt_page():
     print(xcape_link)
     return render_template('mint.html', xcape_link=xcape_link)
 
-@app.route('/nft/<xcape_link>')
-def nft_page(xcape_link):
-    xcape_cid = xcape_decode(xcape_link)
-    print(xcape_cid)
-    return render_template('nft.html', xcape_cid="ipfs://{}".format(xcape_cid))
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080, debug=True)
