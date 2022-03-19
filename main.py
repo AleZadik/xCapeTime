@@ -20,6 +20,16 @@ account_two = {
     "sequence_num":26211506
 }
 
+# Check env mode to build urls correctly
+ENV = os.environ.get('ENV', None)
+hostname = 'https://xcapetime.herokuapp.com'
+
+if ENV == 'production':
+    hostname = os.environ.get('HOSTNAME', None)
+else:
+    hostname = os.environ.get('LOCALHOST', None)
+
+
 
 app = Flask(__name__)
 
