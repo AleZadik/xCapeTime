@@ -101,6 +101,10 @@ def encrypt_page():
 
     return render_template('mint.html', xcape_link=nft_mint_url)
 
+@app.route('/getnfts')
+def get_nfts():
+    return render_template('getnft.html')
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080, debug=True)
