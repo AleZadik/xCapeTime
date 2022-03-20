@@ -29,8 +29,6 @@ if ENV == 'production':
 else:
     hostname = os.environ.get('LOCALHOST', None)
 
-
-
 app = Flask(__name__)
 
 def file_encrypt(file_str):
@@ -47,10 +45,11 @@ def nft_storage_upload(file_from_form):
     else:
         url = "https://api.nft.storage/upload"
         payload=file_from_form
+
         headers = {
-        'accept': 'application/json',
-        'Content-Type': '*/*',
-        'Authorization': 'Bearer WyIweDk1YWNmNTI1ZWNkNWE0YWQ2MzI0ZGYzODY3NWRkNGY2ZWVlMTU4NGVkZWE3N2FhYzNkMDgwZGFhYjU3MDdjYTU1MTI0OWI4NjA2MzgwZGEyOTU2MWM4OGQ2MTNjZTQzNDlhZDI3YThiNDNhYjNhMTUyNTQ2YWM0YzZlZWE0MDQ1MWMiLCJ7XCJpYXRcIjoxNjQ3NzMwMjk0LFwiZXh0XCI6MTY0NzczNzQ5NCxcImlzc1wiOlwiZGlkOmV0aHI6MHhCODgyQzMzNTRDNGNFNGQ5MWViMjJCYTA3MjExMTY2OTAzZDYyNzk3XCIsXCJzdWJcIjpcIkJmQm8tMnI0c1hGaUk0dk9NcS1uRElNT2FOcVBwekVtOW5FRzV4TC0yS3M9XCIsXCJhdWRcIjpcIlpvYmw1QzJHRWVvT1dudXdpb0RURDRBSnd1NlhFTW5WSEttWjZWOFZZLUU9XCIsXCJuYmZcIjoxNjQ3NzMwMjk0LFwidGlkXCI6XCIzYjE4MjZkMy0xZDI4LTRkNDQtYjlkZC1iZDA3ZTQ2NWVhNzVcIixcImFkZFwiOlwiMHgzODQ1YmZiNzNlMmM3ZTVmMzQ3N2EwZDk3MDU3NzFhOTg0ODc0MzgyYTRmZDQ1MDc5NjA3OWNlYWNhMGVjOGM4MjkxZjBkNjBkODkyMjQ3M2I0MmFlZWMxZmRhYjgwMDZjNzExNTY0NmU2ZTMyNWNmODliMzUzMTI0MjBmYzg3NTFiXCJ9Il0='
+            'accept': 'application/json',
+            'Content-Type': '*/*',
+            'Authorization': 'Bearer {}'.format(nft_storage_key)
         }
 
         response = requests.request("POST", url, headers=headers, data=payload).json()
@@ -86,25 +85,21 @@ def nft_page(xcape_link):
 
 @app.route('/')
 def root():
-    encoded = xcape_encode("ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf4dfuylqabf3oclgtqy55fbzdi")
-    decoded = xcape_decode(encoded)
-    print(encoded)
-    print("==========================================================")
-    print(decoded)
     return render_template('index.html')
 
 # Create /encrypt route that receives a file through POST
 @app.route('/encrypt', methods=['POST'])
 def encrypt_page():
     file = request.files['file']
-    print(file.filename)
-    #filename = file.filename
     file_string = file.read()
     encrypted_file_string = file_encrypt(file_string)
     ipfs_link = nft_storage_upload(file_string)
     xcape_link = xcape_encode(ipfs_link)
-    print(xcape_link)
-    return render_template('mint.html', xcape_link=xcape_link)
+    
+    # Set up the url that will be minted in the XRPL using ipfs & NFT.storage
+    nft_mint_url = "{}/unlock/{}".format(hostname, xcape_link)
+
+    return render_template('mint.html', xcape_link=nft_mint_url)
 
 
 if __name__ == '__main__':
