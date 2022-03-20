@@ -6,14 +6,101 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        html {
+            height: 100%;
+        }
+        
+        body {
+            background-color: #2590EB;
+            height: 100%;
+        }
+        
+        .wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wrapper .file-upload {
+            height: 200px;
+            width: 100%;
+            border-radius: 100px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #FFFFFF;
+            overflow: hidden;
+            background-image: linear-gradient(to bottom, #2590EB 50%, #FFFFFF 50%);
+            background-size: 100% 200%;
+            transition: all 1s;
+            color: #FFFFFF;
+            font-size: 100px;
+        }
+        
+        .wrapper .file-upload input[type=file] {
+            height: 200px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .wrapper .file-upload:hover {
+            background-position: 0 -100%;
+            color: #2590EB;
+        }
+        
+        #formsubmit {
+            /* Make a nice round button with white borders, white color text, and no background color */
+            background-color: #ffffff00;
+            border: 2px solid #FFFFFF;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 20px;
+            padding: 10px;
+            width: 100%;
+        }
+        /* When formsubmit is hovered */
+        
+        #formsubmit:hover {
+            background-color: #ffffff;
+            color: #2590EB;
+        }
+        
+        .title {
+            position: relative;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            text-shadow: 1px 1px #ffffff;
+        }
+    </style>
+    <!-- Import fa -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 </head>
 
 <body>
+    <div class="wrapper">
+        <form action="/encrypt" method="post" enctype="multipart/form-data">
+            <h1 class="title">xCapeTime</h1>
+            <p class="title">Sending your legacy to the future</p>
+            <div class="file-upload">
+                <input type="file" name="file">
+                <i class="fa fa-arrow-up"></i>
+
+            </div>
+            <br>
+            <input id='formsubmit' type="submit" value="Encrypt">
+        </form>
+    </div>
     <!-- Make a upload form to flask route /encrypt -->
-    <form action="/encrypt" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Encrypt">
-    </form>
+
 
 
 </body>
