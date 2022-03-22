@@ -11,22 +11,40 @@
             await client.connect()
             console.log("Connected to Sandbox")
             const nfts = await client.request({
-                    method: "account_nfts",
-                    account: wallet.classicAddress
-                })
-                // For each nft, create a new paragraph with the account and nft information
-                // await nfts.forEach(nft => {
-                //     const p = document.createElement("p")
-                //     p.innerHTML = `${nft.account}: ${nft.nft}`
-                //     document.body.appendChild(p)
-                // })
+                method: "account_nfts",
+                account: wallet.classicAddress
+            })
+
+            let transactions = await getAccInfo();
+            let visited = [];
             console.log(nfts)
-                // for each 'nft.result.account_nfts', create a new paragraph with the account and nft information
             nfts.result.account_nfts.forEach(nft => {
+                // For each transaction, check if the transaction has the same URI as the nft.URI
                 const nftURI = xrpl.convertHexToString(nft.URI)
+                transactions.forEach(trans => {
+                    // TODO
+                })
+
                 addNFTtoGRID(`${nfts.result.account}`, nftURI)
             })
             client.disconnect()
+        }
+
+        async function getAccInfo() {
+            const wallet = xrpl.Wallet.fromSeed(secret.value)
+            const client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233")
+            await client.connect()
+            console.log("Connected to Sandbox")
+            const mints = await client.request({
+                method: "account_tx",
+                account: wallet.classicAddress
+            })
+            let txs = mints.result.transactions
+            console.log(txs);
+            // remove any transaction in txs with a different type than "NFTokenMint"
+            txs = txs.filter(tx => tx.tx.TransactionType === "NFTokenMint")
+            client.disconnect()
+            return txs;
         }
 
         function addNFTtoGRID(account, URI) {
@@ -49,8 +67,6 @@
             div.appendChild(divBody)
             document.getElementById("nftgrid").appendChild(div)
         }
-
-        // Write a function that
     </script>
 
     <style>
@@ -226,49 +242,11 @@
         </div>
     </div>
 
-    <!-- Create a grid with boxes -->
     <div class="row">
         <div id='nftgrid' class="col-md-12">
         </div>
     </div>
 
-
-
-    <script>
-        document.getElementById("transferFee").style.display = "none";
-        document.getElementById("labelfee").style.display = "none";
-        document.getElementById("mint").disabled = true;
-
-        // When checkbox flags is checked, make the transferFee visible
-        document.getElementById("flags").addEventListener("change", function() {
-            if (this.checked) {
-                document.getElementById("transferFee").style.display = "block";
-                document.getElementById("labelfee").style.display = "block";
-            } else {
-                document.getElementById("transferFee").style.display = "none";
-                document.getElementById("labelfee").style.display = "none";
-            }
-        });
-
-        // Once date is selected, make sure the data is not in the past
-        document.getElementById("date").addEventListener("change", function() {
-            var today = new Date();
-            var date = new Date(this.value);
-            if (date < today) {
-                alert("Date must be in the future!");
-                this.value = "";
-            }
-        });
-
-        // Check if inputs are good
-        document.getElementById("time").addEventListener("change", function() {
-            if (document.getElementById("account").value != "" && document.getElementById("secret").value != "" && document.getElementById("tokenUrl").value != "" && document.getElementById("date").value != "" && document.getElementById("time").value != "") {
-                document.getElementById("mint").disabled = false;
-            } else {
-                document.getElementById("mint").disabled = true;
-            }
-        });
-    </script>
 </body>
 
 </html>

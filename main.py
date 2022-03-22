@@ -1,5 +1,6 @@
 from cryptography.fernet import Fernet
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_cors import CORS, cross_origin
 from xrpl.clients import JsonRpcClient
 from xrpl.wallet import generate_faucet_wallet
 import requests
@@ -30,6 +31,8 @@ else:
     hostname = os.environ.get('LOCALHOST', None)
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 def file_encrypt(file_str):
     secret_key = os.environ.get('FILE_SECRET_KEY', None)
@@ -102,6 +105,7 @@ def encrypt_page():
     return render_template('mint.html', xcape_link=nft_mint_url)
 
 @app.route('/getnfts')
+@cross_origin()
 def get_nfts():
     return render_template('getnft.html')
 
