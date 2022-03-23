@@ -16,16 +16,28 @@
             })
 
             let transactions = await getAccInfo();
-            let visited = [];
             console.log(nfts)
+            let idap = 0;
             nfts.result.account_nfts.forEach(nft => {
-                // For each transaction, check if the transaction has the same URI as the nft.URI
                 const nftURI = xrpl.convertHexToString(nft.URI)
                 transactions.forEach(trans => {
-                    // TODO
+                    const transactionURI = xrpl.convertHexToString(trans.tx.URI)
+                    if (transactionURI == nftURI) {
+                        if (trans.tx.Memos.length >= 2) {
+                            // Get the fields from memo transactions that correspond to the time the data is unlocked
+                            // Next version has to improve this
+                            let MemoType1 = xrpl.convertHexToString(trans.tx.Memos[0].Memo.MemoType);
+                            let MemoData1 = xrpl.convertHexToString(trans.tx.Memos[0].Memo.MemoData);
+                            let MemoType2 = xrpl.convertHexToString(trans.tx.Memos[1].Memo.MemoType);
+                            let MemoData2 = xrpl.convertHexToString(trans.tx.Memos[1].Memo.MemoData);
+                            console.log(MemoType1 + " " + MemoData1);
+                            console.log(MemoType2 + " " + MemoData2);
+                            checkUnlockStatus(nftURI, MemoData1, MemoData2, idap);
+                            addNFTtoGRID(nfts.result.account, MemoType1, MemoData1, MemoType2, MemoData2, idap);
+                            idap++
+                        }
+                    }
                 })
-
-                addNFTtoGRID(`${nfts.result.account}`, nftURI)
             })
             client.disconnect()
         }
@@ -47,7 +59,7 @@
             return txs;
         }
 
-        function addNFTtoGRID(account, URI) {
+        function addNFTtoGRID(account, MemoType1, MemoData1, MemoType2, MemoData2, idap) {
             const div = document.createElement("div")
             div.className = "box"
             const divHeader = document.createElement("div")
@@ -60,12 +72,71 @@
             divBody.className = "box-body"
             const divNfts = document.createElement("div")
             divNfts.className = "nftdata"
+
+            const date = document.createElement("p")
+            date.innerHTML = MemoType1 + ": " + MemoData1;
+
+            const time = document.createElement("p")
+            time.innerHTML = MemoType2 + ": " + MemoData2;
+
             const h32 = document.createElement("p")
-            h32.innerHTML = "URI: " + URI
+            h32.id = "status" + idap
+            h32.innerHTML = "Status: Fetching...";
+
+            const link = document.createElement("p")
+            link.id = "link" + idap
+            link.innerHTML = "URI " + ": ";
+
+            divNfts.appendChild(date)
+            divNfts.appendChild(time)
             divNfts.appendChild(h32)
+            divNfts.appendChild(link)
+
             divBody.appendChild(divNfts)
             div.appendChild(divBody)
             document.getElementById("nftgrid").appendChild(div)
+        }
+
+        async function checkUnlockStatus(URI, MemoData1, MemoData2, idap) {
+            const xhr = new XMLHttpRequest()
+            xhr.open("POST", "/nftcheck")
+            xhr.setRequestHeader("Content-Type", "application/json")
+            const body = {
+                URI: URI,
+                MemoData1: MemoData1,
+                MemoData2: MemoData2
+            }
+            xhr.send(JSON.stringify(body))
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log(xhr.responseText)
+                    const response = JSON.parse(xhr.responseText)
+                    if (response.status === "unlocked") {
+                        console.log("NFT is unlocked");
+                        // Get element with id "status" + idap
+                        const status = document.getElementById("status" + idap)
+                        status.innerHTML = "Status: Unlocked"
+
+                        // Get element with id "link" + idap
+                        const link = document.getElementById("link" + idap)
+                        link.innerHTML = "URI " + ": " + response.link;
+
+                    } else {
+                        console.log("NFT is locked");
+                        // Get element with id "status" + idap
+                        const status = document.getElementById("status" + idap)
+                        status.innerHTML = "Status: Locked"
+
+                        // Get element with id "link" + idap
+                        const link = document.getElementById("link" + idap)
+                        link.innerHTML = "URI " + ": " + response.link;
+                    }
+                } else {
+                    console.log("Error: " + xhr.status)
+                }
+            }
+
+
         }
     </script>
 
@@ -215,6 +286,10 @@
         
         .col-md-12 {
             width: 100%;
+        }
+        
+        .nftdata>p {
+            width: max-content;
         }
     </style>
     <title>xCapeTime</title>

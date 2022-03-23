@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS, cross_origin
 from xrpl.clients import JsonRpcClient
 from xrpl.wallet import generate_faucet_wallet
+import datetime
 import requests
 import os
 from dotenv import load_dotenv
@@ -81,10 +82,9 @@ def xcape_encode(ipfs_url):
 # Created route that 'decrypts' the url
 @app.route('/unlock/<xcape_link>')
 def nft_page(xcape_link):
-    xcape_cid = xcape_decode(xcape_link)
-    print(xcape_cid)
-    # Returns the ipfs link
-    return render_template('nft.html', xcape_cid="ipfs://{}".format(xcape_cid))
+    # Redirect to /getnfts (User has no actions here.)
+    # This can be furthered developed to something more independent
+    return redirect(url_for('get_nfts'))
 
 @app.route('/')
 def root():
@@ -103,6 +103,53 @@ def encrypt_page():
     nft_mint_url = "{}/unlock/{}".format(hostname, xcape_link)
 
     return render_template('mint.html', xcape_link=nft_mint_url)
+
+@app.route('/nftcheck', methods=['POST'])
+@cross_origin()
+def nft_check():
+    # Get the data from the body
+    data = request.get_json()
+    memo_data = data.get('MemoData1')
+    memo_data_2 = data.get('MemoData2')
+    URI = data.get('URI')
+    
+    if ":" in memo_data: # swap the order if it comes the wrong way
+        memo_data, memo_data_2 = memo_data_2, memo_data
+    
+    # memo_data is formatted as a string "YYYY-MM-DD".
+    # memo_data2 is formatted as a string "24:00" representing military time
+
+    # Check if the current date is after the date in the memo_data
+    # If it is, then the NFT is valid
+    # If it is not, check if the current date is the same as the date in the memo_data
+    # If it is, then check if the current time is after the time in the memo_data2 variable
+    # If it is, then the NFT is valid
+    # If it is not, then the NFT is invalid
+
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    current_time = datetime.datetime.now().strftime("%H:%M")
+
+    print("Current Date: {}".format(current_date))
+    print("Current Time: {}".format(current_time))
+
+    # Check if the current date is after the date in the memo_data
+    if current_date > memo_data:
+        encoded_part = URI.split("/")[-1] # Gets the last part of the link
+        xcape_cid = xcape_decode(encoded_part)
+        ipfs_link = "ipfs://{}".format(xcape_cid)
+        return jsonify({"status": "unlocked", "link": ipfs_link})
+    elif current_date == memo_data:
+        encoded_part = URI.split("/")[-1] # Gets the last part of the link
+        xcape_cid = xcape_decode(encoded_part)
+        ipfs_link = "ipfs://{}".format(xcape_cid)
+        if current_time > memo_data_2:
+            return jsonify({"status": "unlocked", "link": ipfs_link})
+        else:
+            return jsonify({"status": "locked", "link": URI})
+    else:
+        return jsonify({"status": "locked", "link": URI})
+
+
 
 @app.route('/getnfts')
 @cross_origin()
