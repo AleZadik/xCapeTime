@@ -59,6 +59,7 @@
             return txs;
         }
 
+        // @ TODO: Create a button that once clicked, prompts the user for price & details in order to create a SellOffer.
         function addNFTtoGRID(account, MemoType1, MemoData1, MemoType2, MemoData2, idap) {
             const div = document.createElement("div")
             div.className = "box"
@@ -86,7 +87,6 @@
             const link = document.createElement("p")
             link.id = "link" + idap
             link.innerHTML = "URI " + ": ";
-
             divNfts.appendChild(date)
             divNfts.appendChild(time)
             divNfts.appendChild(h32)
@@ -137,6 +137,61 @@
             }
 
 
+        }
+
+        // @ TODO: Give the ability to create a SellOffer to an NFT.
+        async function createSellOffer() {
+            const wallet = xrpl.Wallet.fromSeed(secret.value)
+            const client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233")
+            await client.connect()
+            console.log("Connected to Sandbox")
+
+            // Prepare transaction -------------------------------------------------------
+            const transactionBlob = {
+                "TransactionType": "NFTokenCreateOffer",
+                "Account": wallet.classicAddress,
+                "TokenID": tokenId.value,
+                "Amount": amount.value,
+                "Flags": parseInt(flags.value)
+            }
+
+            // Submit signed blob --------------------------------------------------------
+
+            const tx = await client.submitAndWait(transactionBlob, {
+                    wallet
+                }) //AndWait
+
+
+            console.log("***Sell Offers***")
+            let nftSellOffers
+            try {
+                nftSellOffers = await client.request({
+                    method: "nft_sell_offers",
+                    tokenid: tokenId.value
+                })
+            } catch (err) {
+                console.log("No sell offers.")
+            }
+            console.log(JSON.stringify(nftSellOffers, null, 2))
+            console.log("***Buy Offers***")
+            let nftBuyOffers
+            try {
+                nftBuyOffers = await client.request({
+                    method: "nft_buy_offers",
+                    tokenid: tokenId.value
+                })
+            } catch (err) {
+                console.log("No buy offers.")
+            }
+            console.log(JSON.stringify(nftBuyOffers, null, 2))
+
+            // Check transaction results -------------------------------------------------
+            console.log("Transaction result:",
+                JSON.stringify(tx.result.meta.TransactionResult, null, 2))
+            console.log("Balance changes:",
+                JSON.stringify(xrpl.getBalanceChanges(tx.result.meta), null, 2))
+            client.disconnect()
+                // End of createSellOffer()
         }
     </script>
 
@@ -292,7 +347,7 @@
             width: max-content;
         }
     </style>
-    <title>xCapeTime</title>
+    <title>xCapeTime | Get NFTs</title>
 </head>
 
 <body>
@@ -301,12 +356,11 @@
         <div class="col-md-12">
             <form id="theForm">
                 <fieldset>
-                    <h2 class="title">xCapeTime - Mint NFT</h2>
+                    <h2 class="title">xCapeTime - Get NFTs</h2>
                     <p>Generate NFT-Devnet Credentials: https://xrpl.org/xrp-testnet-faucet.html</p>
 
                     <label>Account</label>
                     <input type="text" id="account" value="" size="40" />
-
 
                     <label>Secret</label>
                     <input type="text" id="secret" value="" size="40" />
