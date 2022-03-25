@@ -33,7 +33,7 @@
                             console.log(MemoType1 + " " + MemoData1);
                             console.log(MemoType2 + " " + MemoData2);
                             checkUnlockStatus(nftURI, MemoData1, MemoData2, idap);
-                            addNFTtoGRID(nfts.result.account, MemoType1, MemoData1, MemoType2, MemoData2, idap);
+                            addNFTtoGRID(nfts.result.account, MemoType1, MemoData1, MemoType2, MemoData2, idap, nft.TokenID);
                             idap++
                         }
                     }
@@ -59,8 +59,7 @@
             return txs;
         }
 
-        // @ TODO: Create a button that once clicked, prompts the user for price & details in order to create a SellOffer.
-        function addNFTtoGRID(account, MemoType1, MemoData1, MemoType2, MemoData2, idap) {
+        function addNFTtoGRID(account, MemoType1, MemoData1, MemoType2, MemoData2, idap, tokenID) {
             const div = document.createElement("div")
             div.className = "box"
             const divHeader = document.createElement("div")
@@ -91,6 +90,22 @@
             divNfts.appendChild(time)
             divNfts.appendChild(h32)
             divNfts.appendChild(link)
+
+            const button = document.createElement("button")
+            button.id = "button" + tokenID
+            button.innerHTML = "Sell"
+
+            button.onclick = function() {
+                const price = prompt("Price to Sell (in XRP): ");
+                const usure = prompt("Sure? (y/n)");
+                if (usure == "y") {
+                    createSellOffer(tokenID, price);
+                } else {
+                    alert("Cancelled");
+                }
+            }
+
+            divNfts.appendChild(button)
 
             divBody.appendChild(divNfts)
             div.appendChild(divBody)
@@ -139,27 +154,23 @@
 
         }
 
-        // @ TODO: Give the ability to create a SellOffer to an NFT.
-        async function createSellOffer() {
+        async function createSellOffer(tokenID, amount) {
             const wallet = xrpl.Wallet.fromSeed(secret.value)
             const client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233")
             await client.connect()
             console.log("Connected to Sandbox")
 
-            // Prepare transaction -------------------------------------------------------
             const transactionBlob = {
                 "TransactionType": "NFTokenCreateOffer",
                 "Account": wallet.classicAddress,
-                "TokenID": tokenId.value,
-                "Amount": amount.value,
-                "Flags": parseInt(flags.value)
+                "TokenID": tokenID,
+                "Amount": "" + (parseInt(amount) * 1000000), // Amount to sell the NFT for in xrp
+                "Flags": 1
             }
 
-            // Submit signed blob --------------------------------------------------------
-
             const tx = await client.submitAndWait(transactionBlob, {
-                    wallet
-                }) //AndWait
+                wallet
+            })
 
 
             console.log("***Sell Offers***")
@@ -167,7 +178,7 @@
             try {
                 nftSellOffers = await client.request({
                     method: "nft_sell_offers",
-                    tokenid: tokenId.value
+                    tokenid: tokenID
                 })
             } catch (err) {
                 console.log("No sell offers.")
@@ -178,20 +189,23 @@
             try {
                 nftBuyOffers = await client.request({
                     method: "nft_buy_offers",
-                    tokenid: tokenId.value
+                    tokenid: tokenID
                 })
             } catch (err) {
                 console.log("No buy offers.")
             }
             console.log(JSON.stringify(nftBuyOffers, null, 2))
 
-            // Check transaction results -------------------------------------------------
             console.log("Transaction result:",
                 JSON.stringify(tx.result.meta.TransactionResult, null, 2))
             console.log("Balance changes:",
                 JSON.stringify(xrpl.getBalanceChanges(tx.result.meta), null, 2))
             client.disconnect()
-                // End of createSellOffer()
+
+            const p = document.createElement("p")
+            p.innerHTML = "link: https://nft-devnet.xrpl.org/accounts/" + wallet.classicAddress;
+            // Append the p element to body
+            document.body.appendChild(p)
         }
     </script>
 
