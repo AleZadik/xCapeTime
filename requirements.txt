@@ -10,4 +10,3 @@ MarkupSafe==0.23
 Werkzeug>=0.14
 click==6.7
 itsdangerous==0.24
-grpcio==1.36.1
