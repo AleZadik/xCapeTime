@@ -44,6 +44,7 @@ def file_encrypt(file_str):
 
 def nft_storage_upload(file_from_form):
     nft_storage_key = os.environ.get('NFT_STORAGE_KEY', None)
+    print(nft_storage_key)
     if not nft_storage_key:
         raise Exception("NFT_STORAGE_KEY is not set")
     else:
@@ -57,6 +58,7 @@ def nft_storage_upload(file_from_form):
         }
 
         response = requests.request("POST", url, headers=headers, data=payload).json()
+        print(response)
         cid = response.get('value').get('cid')
         return cid
 
