@@ -8,6 +8,9 @@
         async function mintToken() {
             document.getElementById("mint").disabled = true;
             document.getElementById("mint").innerHTML = "Minting.......";
+            document.getElementById("mint").style.backgroundColor = "#d3d3d3";
+            document.getElementById("mint").style.border = "2px solid #000000";
+            document.getElementById("mint").style.color = "#000000";
 
             const wallet = xrpl.Wallet.fromSeed(secret.value)
             const client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233")
@@ -85,8 +88,10 @@
                     JSON.stringify(xrpl.getBalanceChanges(tx.result.meta), null, 2))
                 client.disconnect()
             }
-            document.getElementById("description").innerHTML = "Check the transaction here: \n\nhttps://nft-devnet.xrpl.org/accounts/" + wallet.classicAddress;
-            document.getElementById("mint").innerHTML = "NFT Minted.......";
+            let fullUrl = "https://nft-devnet.xrpl.org/accounts/" + wallet.classicAddress
+            document.getElementById("description").innerHTML = "Check the transaction here: <br>\n\n<a href=" + fullUrl + " target='_blank'>Transaction</a>";
+            document.getElementById("mint").innerHTML = "SUCCESS! ";
+            document.getElementById("mint").style.backgroundColor = "#00ff00";
             document.getElementById("description").style.visibility = "visible";
         }
     </script>
@@ -103,6 +108,7 @@
         body {
             font-family: 'Nunito', sans-serif;
             color: #384047;
+            background-color: #2590EB;
         }
         
         form {
@@ -225,10 +231,12 @@
 
     <div class="row">
         <div class="col-md-12">
+            <a href="../getnfts">Get NFTs</a>
             <form id="theForm">
                 <fieldset>
                     <h2 class="title">xCapeTime - Mint NFT</h2>
-                    <p>Generate NFT-Devnet Credentials: https://xrpl.org/xrp-testnet-faucet.html</p>
+                    <p>Generate Account & Secret NFT-Devnet Credentials </p>
+                    <p>Here: <a href='https://xrpl.org/xrp-testnet-faucet.html' target="_blank">xrpl.org/xrp-testnet-faucet.html</a> </p>
 
                     <label>Account</label>
                     <input type="text" id="account" value="" size="40" />
@@ -261,7 +269,6 @@
                 </p>
                 <p id="description" style="visibility: hidden;">Check the transaction here: </p>
             </form>
-            <a href="../getnfts">Get NFTs</a>
 
         </div>
     </div>

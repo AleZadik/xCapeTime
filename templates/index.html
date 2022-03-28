@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>xCapeTime | Home</title>
     <style>
         html {
             height: 100%;
@@ -57,7 +57,6 @@
         }
         
         #formsubmit {
-            /* Make a nice round button with white borders, white color text, and no background color */
             background-color: #ffffff00;
             border: 2px solid #FFFFFF;
             border-radius: 5px;
@@ -66,7 +65,6 @@
             padding: 10px;
             width: 100%;
         }
-        /* When formsubmit is hovered */
         
         #formsubmit:hover {
             background-color: #ffffff;
@@ -81,12 +79,12 @@
             text-shadow: 1px 1px #ffffff;
         }
     </style>
-    <!-- Import fa -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 </head>
 
 <body>
-    <div class="wrapper">
+
+    <div class="wrapper" id="wrapper">
         <form action="/encrypt" method="post" enctype="multipart/form-data">
             <h1 class="title">xCapeTime</h1>
             <p class="title">Sending your legacy to the future</p>
@@ -96,11 +94,35 @@
 
             </div>
             <br>
+            <p class="title">Upload your file above and press the button below</p>
             <input id='formsubmit' type="submit" value="Encrypt">
         </form>
     </div>
-    <!-- Make a upload form to flask route /encrypt -->
 
+    <script>
+        document.getElementById('formsubmit').onmouseover = function() {
+            this.style.cursor = 'pointer';
+            var tooltip = document.createElement('div');
+            tooltip.setAttribute('id', 'tooltip');
+            tooltip.innerHTML = 'Press the button to encrypt your file!';
+            document.getElementById('wrapper').appendChild(tooltip);
+            tooltip.style.top = this.offsetTop + this.offsetHeight + 'px';
+            tooltip.style.position = 'absolute';
+            tooltip.style.textAlign = 'center';
+            tooltip.style.marginLeft = 'auto';
+            tooltip.style.marginRight = 'auto';
+            tooltip.style.backgroundColor = '#2590EB';
+            tooltip.style.zIndex = '9999';
+            tooltip.style.opacity = 1;
+        };
+        document.getElementById('formsubmit').onmouseout = function() {
+            var tooltip = document.getElementById('tooltip');
+            tooltip.style.opacity = 0;
+            setTimeout(function() {
+                document.getElementById('wrapper').removeChild(tooltip);
+            }, 300);
+        };
+    </script>
 
 
 </body>
