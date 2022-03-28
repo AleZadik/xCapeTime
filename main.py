@@ -109,24 +109,13 @@ def encrypt_page():
 @app.route('/nftcheck', methods=['POST'])
 @cross_origin()
 def nft_check():
-    # Get the data from the body
     data = request.get_json()
     memo_data = data.get('MemoData1')
     memo_data_2 = data.get('MemoData2')
     URI = data.get('URI')
     
-    if ":" in memo_data: # swap the order if it comes the wrong way
+    if ":" in memo_data:
         memo_data, memo_data_2 = memo_data_2, memo_data
-    
-    # memo_data is formatted as a string "YYYY-MM-DD".
-    # memo_data2 is formatted as a string "24:00" representing military time
-
-    # Check if the current date is after the date in the memo_data
-    # If it is, then the NFT is valid
-    # If it is not, check if the current date is the same as the date in the memo_data
-    # If it is, then check if the current time is after the time in the memo_data2 variable
-    # If it is, then the NFT is valid
-    # If it is not, then the NFT is invalid
 
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")
     current_time = datetime.datetime.now().strftime("%H:%M")
@@ -134,14 +123,13 @@ def nft_check():
     print("Current Date: {}".format(current_date))
     print("Current Time: {}".format(current_time))
 
-    # Check if the current date is after the date in the memo_data
     if current_date > memo_data:
-        encoded_part = URI.split("/")[-1] # Gets the last part of the link
+        encoded_part = URI.split("/")[-1]
         xcape_cid = xcape_decode(encoded_part)
         ipfs_link = "ipfs://{}".format(xcape_cid)
         return jsonify({"status": "unlocked", "link": ipfs_link})
     elif current_date == memo_data:
-        encoded_part = URI.split("/")[-1] # Gets the last part of the link
+        encoded_part = URI.split("/")[-1]
         xcape_cid = xcape_decode(encoded_part)
         ipfs_link = "ipfs://{}".format(xcape_cid)
         if current_time > memo_data_2:
